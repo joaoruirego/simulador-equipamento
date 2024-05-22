@@ -403,220 +403,58 @@ const ThreeDViewer = () => {
       ) {
         openTabs();
 
-        if (editingComponent.current) {
-          //o editing component é igual ao objeto intersetado
-          if (editingComponent.current == intersections[0].object) {
-            if (localFirstClick) {
-              setTutorial(true);
-              const object = intersections[0].object;
-              intersections[0].object.material.emissive.setHex;
-              const currentEmissive = object.material.emissive.getHex();
+        //já existe um editing component ativo
+        //o editing component é igual ao objeto intersetado
 
-              animateEmissiveColor(
-                object,
-                new THREE.Color(currentEmissive),
-                new THREE.Color(0x00bfff),
-                400
-              );
-              animateEmissiveColor(
-                object,
-                new THREE.Color(0x00bfff),
+        //o editing component é atualizado se não for igual
+        const object = intersections[0].object;
+        intersections[0].object.material.emissive.setHex;
+        const currentEmissive = object.material.emissive.getHex();
 
-                new THREE.Color(currentEmissive),
-                400
-              );
-              setFirstClick(false);
-              localFirstClick = false; // Atualiza a variável local imediatamente
-            } else {
-              intersections[0].object.material.emissive.setHex(0x000000); // Bright cyan glow
-            }
+        animateEmissiveColor(
+          object,
+          new THREE.Color(currentEmissive),
+          new THREE.Color(0x00bfff),
+          400
+        );
+        animateEmissiveColor(
+          object,
+          new THREE.Color(0x00bfff),
 
-            initialUVCursor.x =
-              intersections[0].uv.x * fabricCanvas.current.width;
-            initialUVCursor.y =
-              intersections[0].uv.y * fabricCanvas.current.height;
-            initialUVRotationCursor.x = initialUVCursor.x;
-            initialUVRotationCursor.y = initialUVCursor.y;
-            editingComponent.current.material.map = fabricTexture;
-            editingComponent.current.material.needsUpdate = true;
+          new THREE.Color(currentEmissive),
+          400
+        );
+        closeTabs();
 
-            isImageSelected = selectImage(
-              initialUVCursor,
-              fabricCanvas,
-              isImageSelected,
-              rotated,
-              selectedHandle,
-              isHandleSelected
-            );
-            let obj = fabricCanvas.current.getActiveObject();
-            //obj
-            if (obj) {
-              setActiveObject(obj);
-              let tolerance = (obj.scaleX * obj.width) / 10;
-              rotated = obj.angle;
-              for (let i in obj.oCoords) {
-                let supLimX = obj.oCoords[i].x + tolerance;
-                let supLimY = obj.oCoords[i].y + tolerance;
-                let infLimX = obj.oCoords[i].x - tolerance;
-                let infLimY = obj.oCoords[i].y - tolerance;
-                if (
-                  initialUVCursor.x <= supLimX &&
-                  initialUVCursor.x >= infLimX &&
-                  initialUVCursor.y >= infLimY &&
-                  initialUVCursor.y <= supLimY
-                ) {
-                  selectedHandle = i;
-                  isHandleSelected = true;
-                }
-              }
-              if (!isDragging) {
-                isDragging = true; // Start dragging only if it's a new interaction
-                // selectAndHandleObject(intersections);
-              }
-            } else {
-              setActiveObject(null);
-            }
-          } else {
-            //o editing component é atualizado se não for igual
-            const object = intersections[0].object;
-            intersections[0].object.material.emissive.setHex;
-            const currentEmissive = object.material.emissive.getHex();
+        fabricCanvas.current.renderAll();
 
-            animateEmissiveColor(
-              object,
-              new THREE.Color(currentEmissive),
-              new THREE.Color(0x00bfff),
-              400
-            );
-            animateEmissiveColor(
-              object,
-              new THREE.Color(0x00bfff),
+        editingComponent.current = intersections[0].object;
 
-              new THREE.Color(currentEmissive),
-              400
-            );
-            closeTabs();
+        // intersections[0].object.material.emissive.setHex(0xffffff); // Bright cyan glow
 
-            fabricCanvas.current.renderAll();
-            copyCanvas(
-              fabricCanvas.current,
-              editingComponent.current.userData.canva
-            );
-            editingComponent.current.userData.canva.renderAll();
-            const texture = new THREE.CanvasTexture(
-              editingComponent.current.userData.canva.getElement()
-            );
-            texture.repeat.y = -1;
-            texture.offset.y = 1;
-            editingComponent.current.material.map = texture;
-
-            editingComponent.current = intersections[0].object;
-
-            // intersections[0].object.material.emissive.setHex(0xffffff); // Bright cyan glow
-
-            if (!editingComponent.current.userData.canva) {
-              let ownCanva = new fabric.Canvas("temp", {
-                width: canvasSize,
-                height: canvasSize,
-                backgroundColor: "#ffffff",
-                part: editingComponent.current.name,
-              });
-              setFabricCanvases((prevCanvases) => [...prevCanvases, ownCanva]);
-
-              ownCanva.renderAll();
-
-              editingComponent.current.userData.canva = ownCanva;
-            }
-
-            if (editingComponent.current.userData.canva) {
-              copyCanvas(
-                editingComponent.current.userData.canva,
-                fabricCanvas.current
-              );
-            } else {
-              fabricCanvas.current.backgroundColor = toHexString(
-                // editingComponent.current.material.color
-                "#ffffff"
-              );
-            }
-
-            isImageSelected = selectImage(
-              initialUVCursor,
-              fabricCanvas,
-              isImageSelected,
-              rotated,
-              selectedHandle,
-              isHandleSelected
-            );
-            const obj = fabricCanvas.current.getActiveObject();
-            if (obj) {
-              openTabs();
-              setActiveObject(obj);
-            } else {
-              setActiveObject(null);
-            }
-            editingComponent.current.material.map = fabricTexture;
-            editingComponent.current.material.needsUpdate = true;
-
-            fabricCanvas.current.renderAll();
-            updateTexture();
-
-            initialUVCursor.x =
-              intersections[0].uv.x * fabricCanvas.current.width;
-            initialUVCursor.y =
-              intersections[0].uv.y * fabricCanvas.current.height;
-          }
-
-          //não existe nenhum editing component ativo
+        isImageSelected = selectImage(
+          initialUVCursor,
+          fabricCanvas,
+          isImageSelected,
+          rotated,
+          selectedHandle,
+          isHandleSelected
+        );
+        const obj = fabricCanvas.current.getActiveObject();
+        if (obj) {
+          openTabs();
+          setActiveObject(obj);
         } else {
-          editingComponent.current = intersections[0].object;
-          //console.log(editingComponent.current.name)
-          if (!editingComponent.current.userData.canva) {
-            //console.log('crating canva');
-            let ownCanva = new fabric.Canvas("temp", {
-              width: canvasSize,
-              height: canvasSize,
-              //   backgroundColor: toHexString(
-              //     intersections[0].object.material.color
-              //   ), //toHexString(intersections[0].object.material.color)
-              backgroundColor: "#ffffff",
-              part: editingComponent.current
-                ? editingComponent.current.name
-                : "bodyFMIX",
-            });
-            setFabricCanvases((prevCanvases) => [...prevCanvases, ownCanva]);
-
-            ownCanva.renderAll();
-            const initialTexture = new THREE.CanvasTexture(
-              ownCanva.getElement()
-            );
-            initialTexture.repeat.y = -1;
-            initialTexture.offset.y = 1;
-            editingComponent.current.userData.canva = ownCanva;
-          }
-
-          initialUVCursor.x =
-            intersections[0].uv.x * fabricCanvas.current.width;
-          initialUVCursor.y =
-            intersections[0].uv.y * fabricCanvas.current.height;
-          copyCanvas(
-            editingComponent.current.userData.canva,
-            fabricCanvas.current
-          );
-          isImageSelected = selectImage(
-            initialUVCursor,
-            fabricCanvas,
-            isImageSelected,
-            rotated,
-            selectedHandle,
-            isHandleSelected
-          );
-          fabricCanvas.current.renderAll();
-          updateTexture();
-          //editingComponent.current.material.color = fabricTexture;
-          editingComponent.current.material.map = fabricTexture;
-          editingComponent.current.material.needsUpdate = true;
+          setActiveObject(null);
         }
+        editingComponent.current.material.map = fabricTexture;
+        editingComponent.current.material.needsUpdate = true;
+
+        fabricCanvas.current.renderAll();
+        updateTexture();
+
+        initialUVCursor.x = intersections[0].uv.x * fabricCanvas.current.width;
+        initialUVCursor.y = intersections[0].uv.y * fabricCanvas.current.height;
 
         //não existe nenhum editing component ativo
 
