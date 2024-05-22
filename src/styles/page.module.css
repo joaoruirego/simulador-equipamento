@@ -1084,7 +1084,7 @@
   .poweredTextMainHeader {
     position: fixed;
     left: 50px;
-    margin-top: -10px;
+    bottom: 25px;
     display: flex;
     align-items: center;
     justify-content: center;

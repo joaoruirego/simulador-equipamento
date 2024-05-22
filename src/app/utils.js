@@ -19,7 +19,7 @@ const loadGLBModel = (path, scenario, setIsLoading, onNamesLoaded) => {
     path,
     function (gltf) {
       // Ajuste da posição inicial da cena do modelo
-      gltf.scene.position.set(0, -1, 0);
+      gltf.scene.position.set(0, 0, 0);
       gltf.scene.traverse(function (child) {
         if (child.isMesh) {
           child.material.normalMap = normalMap;
