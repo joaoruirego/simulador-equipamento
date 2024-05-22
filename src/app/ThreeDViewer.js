@@ -403,10 +403,7 @@ const ThreeDViewer = () => {
       ) {
         openTabs();
 
-        //já existe um editing component ativo
-        //o editing component é igual ao objeto intersetado
-
-        //o editing component é atualizado se não for igual
+        //  EMISSIVE EFFECT
         const object = intersections[0].object;
         intersections[0].object.material.emissive.setHex;
         const currentEmissive = object.material.emissive.getHex();
@@ -424,49 +421,19 @@ const ThreeDViewer = () => {
           new THREE.Color(currentEmissive),
           400
         );
-        closeTabs();
+        // closeTabs();
 
-        fabricCanvas.current.renderAll();
+        // fabricCanvas.current.renderAll();
 
         editingComponent.current = intersections[0].object;
 
-        // intersections[0].object.material.emissive.setHex(0xffffff); // Bright cyan glow
-
-        isImageSelected = selectImage(
-          initialUVCursor,
-          fabricCanvas,
-          isImageSelected,
-          rotated,
-          selectedHandle,
-          isHandleSelected
-        );
-        const obj = fabricCanvas.current.getActiveObject();
-        if (obj) {
-          openTabs();
-          setActiveObject(obj);
-        } else {
-          setActiveObject(null);
-        }
         editingComponent.current.material.map = fabricTexture;
         editingComponent.current.material.needsUpdate = true;
 
         fabricCanvas.current.renderAll();
         updateTexture();
 
-        initialUVCursor.x = intersections[0].uv.x * fabricCanvas.current.width;
-        initialUVCursor.y = intersections[0].uv.y * fabricCanvas.current.height;
-
-        //não existe nenhum editing component ativo
-
-        // let mesh = intersections[0].object;
-
-        // mesh.material.map = fabricTexture;
-        // mesh.material.map.channel = 0;
-
-        if (isImageSelected) {
-          orbit.enabled = false;
-          isDragging = true;
-        }
+        // intersections[0].object.material.emissive.setHex(0xffffff); // Bright cyan glow
 
         //caso não existam interseções
       } else {
