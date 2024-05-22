@@ -40,6 +40,10 @@ import {
   calculateUVArea,
   getUVDimensions,
 } from "@/app/get-uv-data";
+import camisaIcon from "../../public/camisaIcon.png";
+import badgeIcon from "../../public/badgeIcon.png";
+import sizeIcon from "../../public/sizeIcon.png";
+import numbericon from "../../public/numbericon.png";
 
 const ThreeDViewer = () => {
   //qunado da select image fica tudo azul do componente preciso fazer um if ou tirar o azul por enquanto
@@ -76,7 +80,7 @@ const ThreeDViewer = () => {
   const [preview, setPreview] = useState(false);
   const [tutorial, setTutorial] = useState(false);
 
-  const [canvasSize, setCanvasSize] = useState(480); // Default to larger size
+  const [canvasSize, setCanvasSize] = useState(1024); // Default to larger size
   const [variavelAjuste, setVariavelAjuste] = useState(23.67); //9732cm^2 totais de area || area do canvas 230400cm2
 
   const [fabricCanvases, setFabricCanvases] = useState([]);
@@ -91,7 +95,7 @@ const ThreeDViewer = () => {
     const isSafari = /Safari/.test(userAgent) && !isChrome;
 
     if (isSafari) {
-      setCanvasSize(480); // Supondo que você quer um tamanho menor para Safari
+      setCanvasSize(1024); // Supondo que você quer um tamanho menor para Safari
       setVariavelAjuste(23.67);
       setMaxTextSize(100);
       setMaxTextSizeStatic(100);
@@ -241,10 +245,17 @@ const ThreeDViewer = () => {
     texture.repeat.y = -1;
     texture.offset.y = 1;
     texture.channel = 0;
+    texture.colorSpace = THREE.SRGBColorSpace;
     setFabricTexture(texture);
+    openTabs();
 
     return () => fabricCanvas.current.dispose();
   }, [canvasSize]);
+
+  useEffect(() => {
+    // Simulate the click on bodyBIMP after the component mounts
+    simulateCenterClick();
+  }, []);
 
   const [clientData, setClientData] = useState({
     name: "",
@@ -302,7 +313,7 @@ const ThreeDViewer = () => {
       1000
     );
     camera.position.z = 25;
-    camera.position.y = -5;
+    camera.position.y = 5;
     const renderer = new THREE.WebGLRenderer({ alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0xf4f4f4); // cor de fundo da cena
@@ -438,9 +449,7 @@ const ThreeDViewer = () => {
         //caso não existam interseções
       } else {
         setEditingComponentHTML(null);
-        setTimeout(() => {
-          closeEditor();
-        }, 200);
+
         closeTabs();
 
         // editingComponent.current = null;
@@ -464,7 +473,7 @@ const ThreeDViewer = () => {
 
       if (editingComponent.current)
         setEditingComponentHTML(editingComponent.current.userData.name);
-      else if (!editingComponent.current) setEditingComponentHTML("hoodInCOR");
+      if (!editingComponent.current) setEditingComponentHTML("bodyBIMP");
     };
 
     const onMouseUp = (e) => {
@@ -618,15 +627,18 @@ const ThreeDViewer = () => {
   }, [fabricCanvases, preview, activeObject]);
 
   //funcoes de abrir e fechar a janela de edicao-------------------------------------------------------------------
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const editZoneRef = useRef(null);
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
 
   const openTabs = () => {
     if (editZoneRef.current) {
-      editZoneRef.current.style.right = "50px";
+      editZoneRef.current.style.right = "0px";
       editZoneRef.current.style.opacity = 1;
       editZoneRef.current.style.transition = "all 0.32s ease-in-out";
-      editZoneRef.current.style.scale = 1;
       setEditorOpen(true);
     }
   };
@@ -634,10 +646,9 @@ const ThreeDViewer = () => {
   // Função para fechar a janela de edição
   const closeEditor = () => {
     if (editZoneRef.current) {
-      editZoneRef.current.style.right = "0px";
+      editZoneRef.current.style.right = "-300px";
       editZoneRef.current.style.opacity = 0;
       editZoneRef.current.style.transition = "all 0.32s ease-in-out";
-      editZoneRef.current.style.scale = 0;
       setEditorOpen(false);
     }
   };
@@ -648,20 +659,56 @@ const ThreeDViewer = () => {
     setImageEditor(false);
   };
 
-  const textEditorTab = () => {
-    if (textEditor) {
-      setTextEditor(false);
-      // if (!activeObject) {
-      //   addTextbox("Seu texto aqui");
-      // }
-    } else {
-      setTextEditor(true);
-      // onClick={() => addTextbox("Seu texto aqui")} // Use a function call to ensure parameters are passed correctly
-      if (!activeObject) {
-        addTextbox("Seu texto aqui");
-      }
+  const rotateScene = (scene, duration = 1000, angle = Math.PI) => {
+    const startRotation = { y: scene.rotation.y };
+    const endRotation = { y: scene.rotation.y + angle };
+    if (scene.rotation.y > -0.5 && scene.rotation.y < 0.5) {
+      new TWEEN.Tween(startRotation)
+        .to(endRotation, duration)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .onUpdate(() => {
+          scene.rotation.y = startRotation.y;
+        })
+        .start();
     }
   };
+
+  const textEditorTab = () => {
+    // Simule o clique central
+    simulateCenterClick();
+    if (textEditor) {
+      setTextEditor(false);
+    } else {
+      setTextEditor(true);
+      // if (!activeObject) {
+      addTextbox("O SEU NOME");
+      // }
+    }
+
+    // Rotacionar a cena inteira quando a aba do editor de texto é acionada
+    if (sceneRef.current) {
+      rotateScene(sceneRef.current);
+    }
+  };
+
+  const textEditorTab2 = () => {
+    // Simule o clique central
+    simulateCenterClick();
+    if (textEditor) {
+      setTextEditor(false);
+    } else {
+      setTextEditor(true);
+      // if (!activeObject) {
+      addTextbox2("1");
+      // }
+    }
+
+    // Rotacionar a cena inteira quando a aba do editor de texto é acionada
+    if (sceneRef.current) {
+      rotateScene(sceneRef.current);
+    }
+  };
+
   // const [cornerColor, setCornerColor] = useState("rgba(0, 0, 0, 0.4)");
   // useEffect(() => {
   //   if (fabricCanvas.current.backgroundColor == "#000000") {
@@ -669,57 +716,132 @@ const ThreeDViewer = () => {
   //   }
   // }, [fabricCanvas.current]);
 
-  function addTextbox(text) {
+  function addTextbox(text1) {
     const canvas = fabricCanvas.current;
     let position = calculateAverageUV(editingComponent.current);
     let scaleF = getUVDimensions(editingComponent.current) * 0.5;
-    console.log(maxTextSizeStatic);
-    console.log(maxTextSize);
-    console.log(fontSize);
+
+    const textOptions = {
+      originX: "center",
+      originY: "center",
+      width: 700,
+      fontSize: 62,
+      fontFamily: fontFamily,
+      fill: "#fff",
+      textAlign: textAlign,
+      editable: false,
+      borderColor: "transparent",
+      cornerColor: "transparent",
+      padding: 5,
+      transparentCorners: false,
+      cornerSize: 0,
+      cornerStyle: "circle",
+      shadow: "rgba(0,0,0,0.3) 0px 0px 10px",
+    };
+
     if (canvas) {
-      // Create a new textbox
-      const textbox = new fabric.Textbox(text, {
-        left: canvas.width * position.averageU, // Center the textbox horizontally
-        top: canvas.height * (position.averageV - 0.1),
-        originX: "center",
-        originY: "center",
-        width: scaleF * canvas.width * 0.5,
-        //height: scaleF * canvas.height ,
-        // fontSize: Math.floor(fontSize * scaleF * 5),
-        fontSize: fontSize,
-        fontFamily: fontFamily,
-        fill: fillColor,
-        textAlign: textAlign, // Adjust as needed
-        editable: false, // Set to true to allow editing
-        borderColor: "transparent",
-        cornerColor:
-          fabricCanvas.current.backgroundColor == "#000000"
-            ? "rgba(255, 255, 255, 0.4)"
-            : "rgba(0, 0, 0, 0.4)",
-        padding: 5,
-        transparentCorners: false,
-        // cornerSize: (scale * 0.65 * fabricImage.scaleX) / 10,
-        cornerSize: (155 + 200) / 20,
-        cornerStyle: "circle",
-        shadow: "rgba(0,0,0,0.3) 0px 0px 10px",
+      // Create the first textbox
+      const textbox1 = new fabric.Textbox(text1, {
+        ...textOptions,
+        left: canvas.width * position.averageU,
+        top: canvas.height * (position.averageV - 0.1) + -160,
       });
-      console.log(textbox.width);
+      // // Create the second textbox
+      // const textbox2 = new fabric.Textbox(text2, {
+      //   ...textOptions,
+      //   left: canvas.width * position.averageU,
+      //   top: canvas.height * (position.averageV - 0.1) + 10 + fontSize,
+      // });
+
       for (const font of fontList) {
-        textbox.set("fontFamily", font);
+        textbox1.set("fontFamily", font);
+        // textbox2.set("fontFamily", font);
       }
-      textbox.set("fontFamily", "Arial");
+      textbox1.set("fontFamily", "Arial");
+      // textbox2.set("fontFamily", "Arial");
 
-      delete textbox.controls.tr;
-      delete textbox.controls.tl;
-      delete textbox.controls.br;
-      delete textbox.controls.bl;
-      delete textbox.controls.mt;
-      delete textbox.controls.mb;
+      delete textbox1.controls.tr;
+      delete textbox1.controls.tl;
+      delete textbox1.controls.br;
+      delete textbox1.controls.bl;
+      delete textbox1.controls.mt;
+      delete textbox1.controls.mb;
+      delete textbox1.controls.ml;
+      delete textbox1.controls.mr;
+      delete textbox1.controls.rt;
 
-      // Add the textbox to the canvas
-      canvas.add(textbox);
-      canvas.setActiveObject(textbox);
-      setActiveObject(textbox); // Update the React state to the newly added textbox
+      // delete textbox2.controls.tr;
+      // delete textbox2.controls.tl;
+      // delete textbox2.controls.br;
+      // delete textbox2.controls.bl;
+      // delete textbox2.controls.mt;
+      // delete textbox2.controls.mb;
+
+      // Add the textboxes to the canvas
+      canvas.add(textbox1);
+      // canvas.add(textbox2);
+      canvas.setActiveObject(textbox1);
+      setActiveObject(textbox1); // Update the React state to the newly added textbox
+      canvas.renderAll();
+      updateTexture();
+    }
+  }
+
+  function addTextbox2(text2) {
+    const canvas = fabricCanvas.current;
+    let position = calculateAverageUV(editingComponent.current);
+    let scaleF = getUVDimensions(editingComponent.current) * 0.5;
+
+    const textOptions = {
+      originX: "center",
+      originY: "center",
+      width: 1000,
+      fontSize: 200,
+      fontFamily: fontFamily,
+      fill: "#fff",
+      textAlign: textAlign,
+      editable: false,
+      borderColor: "transparent",
+      cornerColor: "transparent",
+      padding: 5,
+      transparentCorners: false,
+      cornerSize: 0,
+      cornerStyle: "circle",
+      shadow: "rgba(0,0,0,0.3) 0px 0px 10px",
+    };
+
+    if (canvas) {
+      // Create the first textbox
+      const textbox2 = new fabric.Textbox(text2, {
+        ...textOptions,
+        left: canvas.width * position.averageU,
+        top: canvas.height * (position.averageV - 0.1) + 0,
+      });
+      // // Create the second textbox
+      // const textbox2 = new fabric.Textbox(text2, {
+      //   ...textOptions,
+      //   left: canvas.width * position.averageU,
+      //   top: canvas.height * (position.averageV - 0.1) + 10 + fontSize,
+      // });
+
+      for (const font of fontList) {
+        textbox2.set("fontFamily", font);
+        // textbox2.set("fontFamily", font);
+      }
+      textbox2.set("fontFamily", "Arial");
+      // textbox2.set("fontFamily", "Arial");
+
+      delete textbox2.controls.tr;
+      delete textbox2.controls.tl;
+      delete textbox2.controls.br;
+      delete textbox2.controls.bl;
+      delete textbox2.controls.mt;
+      delete textbox2.controls.mb;
+
+      // Add the textboxes to the canvas
+      canvas.add(textbox2);
+      canvas.setActiveObject(textbox2);
+      setActiveObject(textbox2); // Update the React state to the newly added textbox
       canvas.renderAll();
       updateTexture();
     }
@@ -789,27 +911,37 @@ const ThreeDViewer = () => {
   //     setEditingComponentHTML(editingComponent.current.userData.name);
   //   }
   // }, [editingComponent.current]);
-
   const simulateCenterClick = () => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !sceneRef.current) return;
 
-    // Get the bounding rectangle of the container
-    const rect = containerRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+    // Find the bodyBIMP object in the scene
+    const bodyBIMP = sceneRef.current.getObjectByName("bodyBIMP");
 
-    // Create a new mouse event
-    const event = new MouseEvent("mousedown", {
-      clientX: centerX,
-      clientY: centerY,
-      view: window,
-      bubbles: true,
-      cancelable: true,
-    });
+    if (!bodyBIMP) {
+      console.warn("bodyBIMP not found in the scene.");
+      return;
+    }
 
-    // Dispatch the event on the container
-    containerRef.current.dispatchEvent(event);
+    // Check if bodyBIMP has valid geometry
+    if (!bodyBIMP.geometry) {
+      console.warn("bodyBIMP does not have a valid geometry.");
+      return;
+    }
+
+    // Set the editing component to bodyBIMP
+    editingComponent.current = bodyBIMP;
+
+    // Set the material map to the fabric texture
+    editingComponent.current.material.map = fabricTexture;
+    editingComponent.current.material.needsUpdate = true;
+
+    // Simulate opening the editor for this component
+    setEditingComponentHTML(editingComponent.current.userData.name);
+    openTabs();
+
+    console.log("Simulated click on bodyBIMP and set the fabric texture.");
   };
+
   const backgroundMagic = useRef(null);
   const modelosZone = useRef(null);
   const modelos = useRef(null);
@@ -975,7 +1107,7 @@ const ThreeDViewer = () => {
       : windowWidth < 750
       ? 25
       : 50,
-    color: preview ? "#fff" : "#000",
+    color: preview ? "#fff" : "#fff",
     backgroundColor: preview ? "transparent" : "#fff",
   };
 
@@ -1012,145 +1144,162 @@ const ThreeDViewer = () => {
         </div>
       </div>
 
-      {editingComponent.current && (
-        <>
-          <div ref={editZoneRef} className={styles.editZone}>
-            <div className={styles.nameZone}>
-              <button onClick={closeEditor} className={styles.fileUploadLabeal}>
-                <p
-                  style={{
-                    marginTop: -15,
-                    // justifyContent: "center",
-                    fontSize: 12.5,
-                    // marginLeft: -1,
-                    fontFamily: "Arial",
-                    color: "#fff",
-                    alignSelf: "center",
-                    justifyContent: "center",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
+      <div ref={editZoneRef} className={styles.editZone}>
+        <div className={styles.editHeader}>
+          <h3>
+            Personaliza <br></br>
+            <b>o teu equipamento</b>
+          </h3>
+          <div>
+            <button
+              style={{ cursor: "not-allowed", opacity: 0.5 }}
+              className={styles.divAreaEspecifica}
+            >
+              <div className={styles.divIcon}>
+                <NextImage
+                  style={{ marginTop: -2, marginLeft: -0.5 }}
+                  src={camisaIcon}
+                  width={25}
+                  height={25}
+                  alt="step"
+                />
+              </div>
+              <div>
+                <p className={styles.titleText}>Camisola</p>
+                <p className={styles.infoText}>Escolhe o teu equipamento.</p>
+              </div>
+            </button>
+            <button
+              className={styles.divAreaEspecifica}
+              onClick={toggleDropdown}
+            >
+              <div className={styles.divIcon}>
+                <NextImage
+                  style={{ marginTop: 2, marginLeft: -1 }}
+                  src={sizeIcon}
+                  width={20}
+                  height={20}
+                  alt="step"
+                />
+              </div>
+              <div>
+                <p className={styles.titleText}>Tamanho</p>
+                <p className={styles.infoText}>Escolhe o teu tamanho.</p>
+              </div>
+            </button>
+            {isDropdownOpen && (
+              <div className={styles.dropdown}>
+                <button
+                  onClick={toggleDropdown}
+                  className={styles.dropdownButton}
                 >
-                  &#10005;
-                </p>
-              </button>
-              <div>
-                <p className={styles.trititle}>
-                  A Costumizar{" "}
-                  <b className={styles.subtitle}>
-                    {getPartName(editingComponent.current.name)}
-                    {/* {editingComponent.current.name} */}
-                  </b>
-                </p>
-              </div>
+                  XS
+                </button>
+                <button
+                  onClick={toggleDropdown}
+                  className={styles.dropdownButton}
+                >
+                  S
+                </button>
+                <button
+                  onClick={toggleDropdown}
+                  className={styles.dropdownButton}
+                >
+                  M
+                </button>
 
-              <button
-                className={styles.fileUploadLabeal}
-                style={{ opacity: 0 }}
-              />
-            </div>
-
-            <div className={styles.editHeader}>
-              <div>
-                {editingComponentHTML.includes("IMP") ? (
-                  <>
-                    <button
-                      onClick={textEditorTab}
-                      className={styles.divAreaEspecifica}
-                    >
-                      <div className={styles.divIcon}>
-                        <NextImage
-                          src={textIcon}
-                          width={20}
-                          height={20}
-                          alt="step"
-                        />
-                      </div>
-                      <div>
-                        <p className={styles.titleText}>Texto</p>
-                        <p className={styles.infoText}>
-                          Cor, fontes, tamanhos e alinhamentos.
-                        </p>
-                      </div>
-                    </button>
-                  </>
-                ) : (
-                  <p
-                    style={{ marginTop: 75, textAlign: "center" }}
-                    className={styles.infoText}
-                  >
-                    Não é possível personalizar esta área
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-          {!preview && (
-            <div className={styles.editZoneTlm}>
-              <div className={styles.mainBtns}>
-                <button onClick={textEditorTab}>
-                  <NextImage src={textIcon} width={20} height={20} />
+                <button
+                  onClick={toggleDropdown}
+                  className={styles.dropdownButton}
+                >
+                  XL
                 </button>
               </div>
-            </div>
-          )}
-        </>
-      )}
-      {success == false && (
-        <>
-          <div className={styles.priceBtnMain}>
-            {preview && (
-              <button
-                className={styles.priceBtn}
-                style={{
-                  opacity: nextStep ? "1" : "0.5",
-                  pointerEvents: nextStep ? "auto" : "none",
-                }}
-                onClick={() => {
-                  nextStep && (setSuccess(true), sendData());
-                }}
-              >
-                Continuar
-              </button>
             )}
-          </div>
-          <div className={styles.exportBtnNot}>
             <button
-              onClick={() => {
-                getActiveScene();
-                calcularEImprimirAreasOcupadas();
-                setPreview(!preview);
-                setTimeout(() => {
-                  closeEditor();
-                }, 200);
-                closeTabs();
-              }}
-              style={buttonStyle}
+              style={{ cursor: "not-allowed", opacity: 0.5 }}
+              className={styles.divAreaEspecifica}
             >
-              {preview ? (
-                windowWidth < 450 ? (
-                  <p
-                    style={{
-                      marginTop: 0,
-                      // backgroundColor: "rgba(0, 0, 0 ,0.3)",
-                      // padding: 10,
-                      // borderRadius: 100,
-                      // paddingLeft: 15,
-                      // paddingRight: 15,
-                    }}
-                  >
-                    &#8592;
-                  </p>
-                ) : (
-                  "Voltar à Personalização"
-                )
-              ) : (
-                "Concluído"
-              )}
+              <div className={styles.divIcon}>
+                <NextImage src={badgeIcon} width={20} height={20} alt="step" />
+              </div>
+              <div>
+                <p className={styles.titleText}>Badge</p>
+                <p className={styles.infoText}>Escolhe o teu badge.</p>
+              </div>
+            </button>
+            <button
+              onClick={textEditorTab}
+              className={styles.divAreaEspecifica}
+            >
+              <div className={styles.divIcon}>
+                <NextImage src={textIcon} width={20} height={20} alt="step" />
+              </div>
+              <div>
+                <p className={styles.titleText}>Escolher Nome</p>
+                <p className={styles.infoText}>Escolhe o teu nome.</p>
+              </div>
+            </button>
+            <button
+              onClick={textEditorTab2}
+              className={styles.divAreaEspecifica}
+            >
+              <div className={styles.divIcon}>
+                <NextImage src={numbericon} width={20} height={20} alt="step" />
+              </div>
+              <div>
+                <p className={styles.titleText}>Escolher Número</p>
+                <p className={styles.infoText}>Escolhe o teu número.</p>
+              </div>
             </button>
           </div>
-        </>
+        </div>
+      </div>
+      {!preview && (
+        <div className={styles.editZoneTlm}>
+          <div className={styles.mainBtns}>
+            <button onClick={textEditorTab}>
+              <NextImage src={textIcon} width={20} height={20} />
+            </button>
+          </div>
+        </div>
       )}
+
+      <div className={styles.exportBtnNot}>
+        <button
+          onClick={() => {
+            getActiveScene();
+            calcularEImprimirAreasOcupadas();
+            setPreview(!preview);
+            setTimeout(() => {
+              closeEditor();
+            }, 200);
+            closeTabs();
+          }}
+          style={buttonStyle}
+        >
+          {preview ? (
+            windowWidth < 450 ? (
+              <p
+                style={{
+                  marginTop: 0,
+                  // backgroundColor: "rgba(0, 0, 0 ,0.3)",
+                  // padding: 10,
+                  // borderRadius: 100,
+                  // paddingLeft: 15,
+                  // paddingRight: 15,
+                }}
+              >
+                &#8592;
+              </p>
+            ) : (
+              "Voltar à Personalização"
+            )
+          ) : (
+            "Concluído"
+          )}
+        </button>
+      </div>
 
       {textEditor && (
         <TextEditor
