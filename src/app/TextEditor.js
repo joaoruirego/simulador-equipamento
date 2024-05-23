@@ -24,6 +24,10 @@ const TextEditor = forwardRef(
       maxTextSize,
       setMaxTextSize,
       editingComponent,
+      textData,
+      setTextData,
+      editorText,
+      setEditorText,
     },
     ref
   ) => {
@@ -36,16 +40,16 @@ const TextEditor = forwardRef(
     const [heightWindow, setHeightWindow] = useState(292);
     const [deleteBtn, setDeleteBtn] = useState(false);
 
-    useEffect(() => {
-      let scaleF = getUVDimensions(editingComponent.current) * 0.5;
-      // Determine which active object is currently selected based on the targetCanvasId
-      if (fabricCanvas.current && activeObject) {
-        setText(activeObject.text);
-        setFontSize(activeObject.fontSize || 35); // Atualiza o estado do tamanho da fonte com base no objeto ativo
-        setFillColor(activeObject.fill || "#000000"); // Atualiza o estado do tamanho da fonte com base no objeto ativo
-        setFontFamily(activeObject.fontFamily || "Arial"); // Atualiza o estado do tamanho da fonte com base no objeto ativo
-      }
-    }, [activeObject]);
+    // useEffect(() => {
+    //   let scaleF = getUVDimensions(editingComponent.current) * 0.5;
+    //   // Determine which active object is currently selected based on the targetCanvasId
+    //   if (fabricCanvas.current && activeObject) {
+    //     setText(activeObject.text);
+    //     setFontSize(activeObject.fontSize || 35); // Atualiza o estado do tamanho da fonte com base no objeto ativo
+    //     setFillColor(activeObject.fill || "#000000"); // Atualiza o estado do tamanho da fonte com base no objeto ativo
+    //     setFontFamily("Babas Neue"); // Atualiza o estado do tamanho da fonte com base no objeto ativo
+    //   }
+    // }, [activeObject]);
 
     const handleDelete = () => {
       setDeleteBtn(!deleteBtn);
@@ -59,36 +63,41 @@ const TextEditor = forwardRef(
       }
     };
 
-    // const handleTextChange = (newText, targetCanvasId) => {
-    //   setText(newText); // Update the text state
-    //   // Determine which canvas to update based on targetCanvasId and update it accordingly
-    //   const canvas =
-    //     targetCanvasId === "fabricCanvas"
-    //       ? fabricCanvas.current
-    //       : fabricCanvasMesh.current;
-    //   if (canvas) {
-    //     const objects = canvas.getObjects("textbox");
-    //     if (objects.length > 0) {
-    //       const textbox = objects[0];
-    //       textbox.set("text", newText);
-    //       canvas.requestRenderAll();
-    //     }
+    // const handleTextChange = (e) => {
+    //   const newText = e.target.value;
+    //   console.log(newText);
+
+    //   // Check which canvas is currently being targeted and if there's an active object selected
+    //   if (fabricCanvas.current && activeObject) {
+    //     // Update text for the active object in fabricCanvas
+    //     activeObject.set("text", newText);
+    //     fabricCanvas.current.renderAll();
     //   }
+
+    //   setText(newText);
+    //   updateTexture(); // Update the texture to reflect the changes
+    //   console.log(fontSize);
     // };
+
+    // useEffect(() => {
+    //   if (activeObject && activeObject.type === "textbox") {
+    //     // Update local state to reflect the properties of the activeObject
+    //     setText(activeObject.text);
+    //     setFontFamily(activeObject.fontFamily);
+    //     setFontSize(activeObject.fontSize);
+    //     setFillColor(activeObject.fill);
+    //   }
+    // }, [activeObject]);
+
+    // Handler for changes in text input
     const handleTextChange = (e) => {
-      const newText = e.target.value;
-      console.log(newText);
+      const canvas = fabricCanvas.current;
 
-      // Check which canvas is currently being targeted and if there's an active object selected
-      if (fabricCanvas.current && activeObject) {
-        // Update text for the active object in fabricCanvas
-        activeObject.set("text", newText);
-        fabricCanvas.current.renderAll();
+      if (activeObject) {
+        activeObject.set("text", e.target.value);
+        canvas.renderAll();
+        updateTexture();
       }
-
-      setText(newText);
-      updateTexture(); // Update the texture to reflect the changes
-      console.log(fontSize);
     };
 
     const [newSize, setNewSize] = useState(fontSize);
@@ -171,6 +180,21 @@ const TextEditor = forwardRef(
       updateTexture(); // Chamada para atualizar a textura, se necessário
     };
 
+    const [inputText, setInputText] = useState("");
+
+    const handleInputChange = (e) => {
+      setInputText(e.target.value);
+      if (textData.text1) {
+        textData.text1.set({ text: e.target.value });
+      }
+      if (textData.text2) {
+        textData.text2.set({ text: e.target.value });
+      }
+      fabricCanvas.current.renderAll();
+    };
+
+    // In your render
+
     return (
       <>
         <div className={styles.editZoneText}>
@@ -188,15 +212,28 @@ const TextEditor = forwardRef(
                   }}
                   className={styles.input_Trash}
                 >
-                  <input
+                  {/* <input
                     placeholder="Escreva o seu texto"
                     className={styles.inputText}
-                    style={{ width: "90%" }}
+                    style={{ width: "90%", textTransform: "uppercase" }}
                     value={text}
                     // value={text} // Display text from the active object
                     onChange={handleTextChange}
-                  />
-
+                  /> */}
+                  {editorText == 1 && (
+                    <input
+                      type="text"
+                      onChange={(e) => handleTextChange(e, "text1")}
+                      placeholder="Update text for Tab 1"
+                    />
+                  )}
+                  {editorText == 2 && (
+                    <input
+                      type="text"
+                      onChange={(e) => handleTextChange(e, "text2")}
+                      placeholder="Update text for Tab 2"
+                    />
+                  )}
                   <button
                     onClick={handleDelete}
                     className={styles.deleteButton}

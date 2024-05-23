@@ -89,6 +89,8 @@ const ThreeDViewer = () => {
   const [maxTextSizeStatic, setMaxTextSizeStatic] = useState(100);
   const [minScaleAllowed, setMinScaleAllowed] = useState(40);
 
+  const [textData, setTextData] = useState({ text1: null, text2: null });
+
   useEffect(() => {
     const userAgent = window.navigator.userAgent;
     const isChrome =
@@ -226,7 +228,7 @@ const ThreeDViewer = () => {
       fabricCanvas.current,
     ]); */
 
-    const imgURL = "/bodyFBG.png";
+    const imgURL = "/bodyFBG2.png";
 
     fabric.Image.fromURL(imgURL, (img) => {
       fabricCanvas.current.add(img);
@@ -387,6 +389,7 @@ const ThreeDViewer = () => {
       const canvas = fabricCanvas.current;
       const activeObject = canvas.getActiveObject();
       setActiveObject(activeObject);
+      setTocou(true);
 
       // Calculate normalized device coordinates
       initialMouse.x = (x / window.innerWidth) * 2 - 1;
@@ -423,6 +426,7 @@ const ThreeDViewer = () => {
         // closeTabs();
 
         // fabricCanvas.current.renderAll();
+        setOptions(!options);
 
         editingComponent.current = intersections[0].object;
 
@@ -437,7 +441,6 @@ const ThreeDViewer = () => {
         //caso não existam interseções
       } else {
         setEditingComponentHTML(null);
-
         closeTabs();
 
         // editingComponent.current = null;
@@ -618,6 +621,7 @@ const ThreeDViewer = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const editZoneRef = useRef(null);
+  const btnConcluido = useRef(null);
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
@@ -627,6 +631,13 @@ const ThreeDViewer = () => {
       editZoneRef.current.style.right = "0px";
       editZoneRef.current.style.opacity = 1;
       editZoneRef.current.style.transition = "all 0.32s ease-in-out";
+      setEditorOpen(true);
+    }
+
+    if (btnConcluido.current) {
+      btnConcluido.current.style.right = "25px";
+      btnConcluido.current.style.opacity = 1;
+      btnConcluido.current.style.transition = "all 0.32s ease-in-out";
       setEditorOpen(true);
     }
   };
@@ -639,18 +650,28 @@ const ThreeDViewer = () => {
       editZoneRef.current.style.transition = "all 0.32s ease-in-out";
       setEditorOpen(false);
     }
+
+    if (btnConcluido.current) {
+      btnConcluido.current.style.right = "-300px";
+      btnConcluido.current.style.opacity = 0;
+      btnConcluido.current.style.transition = "all 0.32s ease-in-out";
+      setEditorOpen(false);
+    }
   };
 
   const closeTabs = () => {
     setTextEditor(false);
     setColorEditor(false);
     setImageEditor(false);
+    setActiveObject(activeObject);
   };
+
+  const [tocou, setTocou] = useState(false);
 
   const rotateScene = (scene, duration = 1000, angle = Math.PI) => {
     const startRotation = { y: scene.rotation.y };
     const endRotation = { y: scene.rotation.y + angle };
-    if (scene.rotation.y > -0.5 && scene.rotation.y < 0.5) {
+    if (scene.rotation.y == 0) {
       new TWEEN.Tween(startRotation)
         .to(endRotation, duration)
         .easing(TWEEN.Easing.Quadratic.Out)
@@ -665,44 +686,87 @@ const ThreeDViewer = () => {
 
   const chooseOptions = () => {
     setOptions(!options);
-  };
-
-  const textEditorTab = () => {
-    // Simule o clique central
     simulateCenterClick();
-    if (textEditor) {
-      setTextEditor(false);
-    } else {
-      setTextEditor(true);
-      // if (!activeObject) {
-      addTextbox("O SEU NOME");
-      // }
-    }
 
     // Rotacionar a cena inteira quando a aba do editor de texto é acionada
-    if (sceneRef.current) {
+    if (sceneRef.current && !tocou) {
       rotateScene(sceneRef.current);
     }
+  };
+
+  const addOrUpdateText1 = () => {
+    const canvas = fabricCanvas.current;
+    if (!textData.text1) {
+      const newText = new fabric.Textbox("Initial Text 1", {
+        left: 50, // Default position
+        top: 50, // Default position
+        fontSize: 20,
+      });
+      canvas.add(newText);
+      setTextData((prev) => ({ ...prev, text1: newText }));
+    } else {
+      textData.text1.set({ text: "Updated Text 1" });
+      canvas.renderAll();
+    }
+  };
+
+  const addOrUpdateText2 = () => {
+    const canvas = fabricCanvas.current;
+    if (!textData.text2) {
+      const newText = new fabric.Textbox("Initial Text 2", {
+        left: 100, // Default position
+        top: 100, // Default position
+        fontSize: 20,
+      });
+      canvas.add(newText);
+      setTextData((prev) => ({ ...prev, text2: newText }));
+    } else {
+      textData.text2.set({ text: "Updated Text 2" });
+      canvas.renderAll();
+    }
+  };
+
+  const [editorText, setEditorText] = useState(1);
+
+  const textEditorTab = () => {
+    addOrUpdateText1();
+    setTextEditor(true);
+    setEditorText(1);
+    // if (activeObject && activeObject.fontSize == 55) {
+    //   addTextbox("O SEU NOME");
+    // }
+
+    // if (!activeObject) {
+    addTextbox("O SEU NOME");
+    //
+    // console.log("nome: ", activeObject.fontSize);
   };
 
   const textEditorTab2 = () => {
-    // Simule o clique central
-    simulateCenterClick();
-    if (textEditor) {
-      setTextEditor(false);
-    } else {
-      setTextEditor(true);
-      // if (!activeObject) {
-      addTextbox2("1");
-      // }
-    }
+    addOrUpdateText2();
+    setTextEditor(true);
+    // setActiveObject(activeObject)
+    // if (activeObject && activeObject.fontSize == 265) {
+    //   addTextbox2("1");
+    setEditorText(2);
+    // }
 
-    // Rotacionar a cena inteira quando a aba do editor de texto é acionada
-    if (sceneRef.current) {
-      rotateScene(sceneRef.current);
-    }
+    // if (!activeObject) {
+    addTextbox2("1");
+    // }
   };
 
+  useEffect(() => {
+    // This will ensure any change in textData refreshes appropriately
+    if (editorText === 1 && textData.text1) {
+      setActiveObject(textData.text1);
+      fabricCanvas.current.setActiveObject(textData.text1);
+    } else if (editorText === 2 && textData.text2) {
+      setActiveObject(textData.text2);
+      fabricCanvas.current.setActiveObject(textData.text2);
+    }
+    fabricCanvas.current.renderAll();
+  }, [editorText, textData, fabricCanvas.current]);
   // const [cornerColor, setCornerColor] = useState("rgba(0, 0, 0, 0.4)");
   // useEffect(() => {
   //   if (fabricCanvas.current.backgroundColor == "#000000") {
@@ -712,133 +776,78 @@ const ThreeDViewer = () => {
 
   function addTextbox(text1) {
     const canvas = fabricCanvas.current;
-    let position = calculateAverageUV(editingComponent.current);
-    let scaleF = getUVDimensions(editingComponent.current) * 0.5;
+    let textbox1 = textData.text1;
 
-    const textOptions = {
-      originX: "center",
-      originY: "center",
-      width: 700,
-      fontSize: 40,
-      fontFamily: fontFamily,
-      fill: "#eee",
-      textAlign: textAlign,
-      editable: false,
-      borderColor: "transparent",
-      cornerColor: "transparent",
-      padding: 5,
-      transparentCorners: false,
-      cornerSize: 0,
-      cornerStyle: "circle",
-      shadow: "rgba(0,0,0,0.3) 0px 0px 10px",
-    };
-
-    if (canvas) {
-      // Create the first textbox
-      const textbox1 = new fabric.Textbox(text1, {
-        ...textOptions,
+    if (!textbox1) {
+      let position = calculateAverageUV(editingComponent.current);
+      const textOptions = {
+        originX: "center",
+        originY: "center",
+        width: 700,
+        fontSize: 55,
+        fontFamily: "Impact",
+        fill: "#ddd",
+        textAlign: textAlign,
+        editable: true,
+        borderColor: "transparent",
+        cornerColor: "transparent",
+        padding: 5,
+        transparentCorners: false,
+        cornerSize: 0,
+        cornerStyle: "circle",
+        shadow: "rgba(0,0,0,0.3) 0px 0px 10px",
         left: canvas.width * position.averageU,
-        top: canvas.height * (position.averageV - 0.1) + -150,
-      });
-      // // Create the second textbox
-      // const textbox2 = new fabric.Textbox(text2, {
-      //   ...textOptions,
-      //   left: canvas.width * position.averageU,
-      //   top: canvas.height * (position.averageV - 0.1) + 10 + fontSize,
-      // });
+        top: canvas.height * (position.averageV - 0.1) - 160,
+      };
 
-      for (const font of fontList) {
-        textbox1.set("fontFamily", font);
-        // textbox2.set("fontFamily", font);
-      }
-      textbox1.set("fontFamily", "Arial");
-      // textbox2.set("fontFamily", "Arial");
-
-      delete textbox1.controls.tr;
-      delete textbox1.controls.tl;
-      delete textbox1.controls.br;
-      delete textbox1.controls.bl;
-      delete textbox1.controls.mt;
-      delete textbox1.controls.mb;
-      delete textbox1.controls.ml;
-      delete textbox1.controls.mr;
-      delete textbox1.controls.rt;
-
-      // delete textbox2.controls.tr;
-      // delete textbox2.controls.tl;
-      // delete textbox2.controls.br;
-      // delete textbox2.controls.bl;
-      // delete textbox2.controls.mt;
-      // delete textbox2.controls.mb;
-
-      // Add the textboxes to the canvas
+      textbox1 = new fabric.Textbox(text1, textOptions);
       canvas.add(textbox1);
-      // canvas.add(textbox2);
-      canvas.setActiveObject(textbox1);
-      setActiveObject(textbox1); // Update the React state to the newly added textbox
-      canvas.renderAll();
-      updateTexture();
+      setTextData((prev) => ({ ...prev, text1: textbox1 }));
+      setActiveObject(textbox1);
+    } else {
+      textbox1.set({ text: text1 });
     }
+    canvas.setActiveObject(textbox1);
+    canvas.renderAll();
+    updateTexture();
   }
 
   function addTextbox2(text2) {
     const canvas = fabricCanvas.current;
-    let position = calculateAverageUV(editingComponent.current);
-    let scaleF = getUVDimensions(editingComponent.current) * 0.5;
+    let textbox2 = textData.text2;
 
-    const textOptions = {
-      originX: "center",
-      originY: "center",
-      width: 1000,
-      fontSize: 250,
-      fontFamily: fontFamily,
-      fill: "#eee",
-      textAlign: textAlign,
-      editable: false,
-      borderColor: "transparent",
-      cornerColor: "transparent",
-      padding: 5,
-      transparentCorners: false,
-      cornerSize: 0,
-      cornerStyle: "circle",
-      shadow: "rgba(0,0,0,0.3) 0px 0px 10px",
-    };
-
-    if (canvas) {
-      // Create the first textbox
-      const textbox2 = new fabric.Textbox(text2, {
-        ...textOptions,
+    if (!textbox2) {
+      let position = calculateAverageUV(editingComponent.current);
+      const textOptions = {
+        originX: "center",
+        originY: "center",
+        width: 1000,
+        fontSize: 265,
+        fontFamily: "Impact",
+        fill: "#ddd",
+        textAlign: textAlign,
+        editable: true,
+        borderColor: "transparent",
+        cornerColor: "transparent",
+        padding: 5,
+        transparentCorners: false,
+        cornerSize: 0,
+        cornerStyle: "circle",
+        shadow: "rgba(0,0,0,0.3) 0px 0px 10px",
         left: canvas.width * position.averageU,
         top: canvas.height * (position.averageV - 0.1) + 25,
-      });
-      // // Create the second textbox
-      // const textbox2 = new fabric.Textbox(text2, {
-      //   ...textOptions,
-      //   left: canvas.width * position.averageU,
-      //   top: canvas.height * (position.averageV - 0.1) + 10 + fontSize,
-      // });
+      };
 
-      for (const font of fontList) {
-        textbox2.set("fontFamily", font);
-        // textbox2.set("fontFamily", font);
-      }
-      textbox2.set("fontFamily", "Arial");
-      // textbox2.set("fontFamily", "Arial");
-
-      delete textbox2.controls.tr;
-      delete textbox2.controls.tl;
-      delete textbox2.controls.br;
-      delete textbox2.controls.bl;
-      delete textbox2.controls.mt;
-      delete textbox2.controls.mb;
-
-      // Add the textboxes to the canvas
+      textbox2 = new fabric.Textbox(text2, textOptions);
       canvas.add(textbox2);
-      canvas.setActiveObject(textbox2);
-      setActiveObject(textbox2); // Update the React state to the newly added textbox
-      canvas.renderAll();
-      updateTexture();
+      setTextData((prev) => ({ ...prev, text2: textbox2 }));
+      setActiveObject(textbox2);
+    } else {
+      textbox2.set({ text: text2 });
     }
+    canvas.setActiveObject(textbox2);
+    canvas.renderAll();
+    updateTexture();
   }
 
   useEffect(() => {
@@ -1144,7 +1153,7 @@ const ThreeDViewer = () => {
             Personaliza <br></br>
             <b>o teu equipamento</b>
           </h3>
-          <div>
+          <div className={styles.sideScroll}>
             <button
               style={{ cursor: "not-allowed", opacity: 0.5 }}
               className={styles.divAreaEspecifica}
@@ -1251,9 +1260,10 @@ const ThreeDViewer = () => {
                 >
                   <div className={styles.divIcon}>
                     <NextImage
-                      src={textIcon}
-                      width={20}
-                      height={20}
+                      style={{ marginTop: -2, marginLeft: -0.5 }}
+                      src={camisaIcon}
+                      width={25}
+                      height={25}
                       alt="step"
                     />
                   </div>
@@ -1315,7 +1325,7 @@ const ThreeDViewer = () => {
         </div>
       )}
 
-      <div className={styles.exportBtnNot}>
+      <div ref={btnConcluido} className={styles.exportBtnNot}>
         <button
           onClick={() => {
             getActiveScene();
@@ -1369,6 +1379,10 @@ const ThreeDViewer = () => {
           maxTextSize={maxTextSize}
           setMaxTextSize={setMaxTextSize}
           editingComponent={editingComponent}
+          textData={textData}
+          setTextData={setTextData}
+          editorText={editorText}
+          setEditorText={setEditorText}
         />
       )}
     </>

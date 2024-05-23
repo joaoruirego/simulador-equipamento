@@ -58,7 +58,7 @@ const loadGLBModel = (path, scenario, setIsLoading, onNamesLoaded) => {
             }
           });
         })
-        .delay(500)
+        .delay(600)
         .start();
 
       new TWEEN.Tween({ x: 0, y: 0, z: 0 })
@@ -67,7 +67,7 @@ const loadGLBModel = (path, scenario, setIsLoading, onNamesLoaded) => {
         .onUpdate((rotation) => {
           gltf.scene.rotation.set(rotation.x, rotation.y, rotation.z);
         })
-        .delay(500)
+        .delay(600)
         .start();
 
       setIsLoading(false);

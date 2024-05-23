@@ -27,7 +27,7 @@ const Home = () => {
       <div className={styles.titleZone}>
         <div className={styles.titleStruct}>
           <NextImage src={logo} width={155} height={35} />
-          <p className={styles.desc}>Simulator</p>
+          {/* <p className={styles.desc}>Simulator</p> */}
         </div>
         <div className={styles.poweredTextMainHeader}>
           <p className={styles.poweredText}>Powered by</p>
