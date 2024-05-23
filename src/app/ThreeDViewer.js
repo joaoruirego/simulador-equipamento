@@ -4,19 +4,12 @@ import { fabric } from "fabric";
 import { useEffect, useRef, useState } from "react";
 import TWEEN from "@tweenjs/tween.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import Link from "next/link";
 import { getIntersections, loadGLBModel } from "./utils";
 import NextImage from "next/image";
 import styles from "@/styles/page.module.css";
 import textIcon from "@/imgs/textIcon.png";
 import TextEditor from "./TextEditor";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { storage } from "@/firebase";
-import {
-  calculateAverageUV,
-  calculateUVArea,
-  getUVDimensions,
-} from "@/app/get-uv-data";
+import { calculateAverageUV } from "@/app/get-uv-data";
 import camisaIcon from "../../public/camisaIcon.png";
 import badgeIcon from "../../public/badgeIcon.png";
 import sizeIcon from "../../public/sizeIcon.png";
@@ -37,59 +30,14 @@ const ThreeDViewer = () => {
   const [imageSrc, setImageSrc] = useState("");
 
   const [model, setModel] = useState("0");
-  const [escolheBtn, setEscolheBtn] = useState(false);
-  const [tutorial, setTutorial] = useState(false);
 
   const [canvasSize, setCanvasSize] = useState(1024); // Default to larger size
-  const [variavelAjuste, setVariavelAjuste] = useState(23.67); //9732cm^2 totais de area || area do canvas 230400cm2
 
-  const [fabricCanvases, setFabricCanvases] = useState([]);
   const [maxTextSize, setMaxTextSize] = useState(100);
-  const [maxTextSizeStatic, setMaxTextSizeStatic] = useState(100);
-  const [minScaleAllowed, setMinScaleAllowed] = useState(40);
 
   const [textData, setTextData] = useState({ text1: null, text2: null });
 
-  useEffect(() => {
-    const userAgent = window.navigator.userAgent;
-    const isChrome =
-      /Chrome/.test(userAgent) && /Google Inc/.test(navigator.vendor);
-    const isSafari = /Safari/.test(userAgent) && !isChrome;
-
-    if (isSafari) {
-      setCanvasSize(1024); // Supondo que você quer um tamanho menor para Safari
-      setVariavelAjuste(23.67);
-      setMaxTextSize(100);
-      setMaxTextSizeStatic(100);
-      setMinScaleAllowed(40);
-    } else {
-      setCanvasSize(1024); // Tamanho padrão para outros navegadores
-      setVariavelAjuste(47.47);
-      setMaxTextSize(200);
-      setMaxTextSizeStatic(200);
-      setMinScaleAllowed(100);
-    }
-  }, []);
-
-  useEffect(() => {
-    let scaleF;
-    if (editingComponent.current) {
-      scaleF = getUVDimensions(editingComponent.current) * 0.5;
-
-      if (!editingComponent.current.userData.uvArea) {
-        let area = calculateUVArea(editingComponent.current.geometry);
-        editingComponent.current.userData.uvArea = area;
-      }
-    }
-
-    setMaxTextSize(Math.floor(maxTextSizeStatic / scaleF / 5));
-  }, [editingComponent.current]);
-
   const [objectNames, setObjectNames] = useState([]); // Estado para armazenar os nomes dos objetos
-  const [currentIndex, setCurrentIndex] = useState(0); // Estado para o índice atual
-
-  const [firstClick, setFirstClick] = useState(true);
-  let localFirstClick = firstClick; // Copia o estado atual para uma variável local
 
   const [editorOpen, setEditorOpen] = useState(false);
 
@@ -97,80 +45,21 @@ const ThreeDViewer = () => {
   let fabricCanvas = useRef(null);
   const [fabricTexture, setFabricTexture] = useState(null);
   let isDragging = false;
-  let selectedHandle;
-  let isHandleSelected = false;
-  let isImageSelected = false;
-  let rotated = 0;
 
   //cor variables
-  const [colorEditor, setColorEditor] = useState(false);
-  const [imageEditor, setImageEditor] = useState(false);
   const [textEditor, setTextEditor] = useState(false);
 
   //activeObject variable
   const [activeObject, setActiveObject] = useState(null);
 
-  //nomes certos dos objetos
-
-  function setBGColor(hexColor) {
-    const color = hexColor.trim(); // Clean the input
-    if (color[0] !== "#" || color.length !== 7) return; // Ensure valid color
-    editingComponent.current.material.emissive.setHex(0x000000); // Reset emissive color
-
-    const canvas = fabricCanvas.current;
-    if (!canvas) return;
-
-    const startColor = new THREE.Color(canvas.backgroundColor); // Current color
-    const endColor = new THREE.Color(color); // New color from input
-
-    let progress = 0; // Initialize progress
-    const duration = 400; // Duration of the transition in milliseconds
-    const stepTime = 10; // Time each step takes
-
-    function step() {
-      progress += stepTime;
-      const lerpFactor = progress / duration;
-      if (lerpFactor < 1) {
-        // Continue interpolation
-        const interpolatedColor = startColor.lerpColors(
-          startColor,
-          endColor,
-          lerpFactor
-        );
-        const cssColor = "#" + interpolatedColor.getHexString();
-        canvas.setBackgroundColor(cssColor, canvas.renderAll.bind(canvas));
-        requestAnimationFrame(step); // Request the next animation frame
-      } else {
-        // Final color set after the animation ends
-        canvas.setBackgroundColor(color, canvas.renderAll.bind(canvas));
-      }
-      updateTexture(); // Update texture if needed
-    }
-    step();
-  }
-
   const updateTexture = () => {
     if (fabricTexture) fabricTexture.needsUpdate = true;
   };
 
-  const [precoFinal, setPrecoFinal] = useState("13.25"); // Preço inicial de 10€ como string para fácil manipulação na renderização
-  const [precoAnimado, setPrecoAnimado] = useState("0.00"); // Estado para controlar o valor animado do preço
-
-  const setupCanvases = () => {
-    fabricCanvases[0].setDimensions({ width: 100, height: 80 }); // Front
-    fabricCanvases[1].setDimensions({ width: 100, height: 100 }); // Back
-    fabricCanvases[2].setDimensions({ width: 60, height: 100 }); // Left
-    fabricCanvases[3].setDimensions({ width: 60, height: 100 }); // Right
-  };
-
   const [fontSize, setFontSize] = useState(35);
-  const [tex, setTex] = useState("");
-  const [texMesh, setTexMesh] = useState("");
   const [fillColor, setFillColor] = useState("#000000"); // Default color set to blue
   const [textAlign, setTextAlign] = useState("center");
   const [fontFamily, setFontFamily] = useState("Arial");
-
-  const [docId, setDocId] = useState("");
 
   //load fabric canvas--------------------------------------------------------------------------------------------
   useEffect(() => {
@@ -182,10 +71,6 @@ const ThreeDViewer = () => {
         ? editingComponent.current.name
         : "bodyFMIX",
     });
-    /* setFabricCanvases((prevCanvases) => [
-      ...prevCanvases,
-      fabricCanvas.current,
-    ]); */
 
     const imgURL = "/bodyFBG2.png";
 
@@ -218,47 +103,6 @@ const ThreeDViewer = () => {
     // Simulate the click on bodyBIMP after the component mounts
     simulateCenterClick();
   }, []);
-
-  const [clientData, setClientData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-  });
-
-  async function getActiveScene() {
-    const dataL = await testP();
-    //console.log("dataL", dataL);
-
-    try {
-      const response = await fetch(
-        "https://allkits-server.onrender.com/convertSceneToText",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sceneData: dataL,
-            clientData,
-            model: model,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to convert scene to JSON");
-      }
-
-      const data = await response.json(); // Parse JSON response
-      const id = data.docId; // Access the docId field
-
-      setDocId(id);
-
-      // You can do further processing with the docId here if needed
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  }
 
   useEffect(() => {
     if (!fabricTexture) return;
@@ -323,20 +167,6 @@ const ThreeDViewer = () => {
     // Parameters: fog color, start distance, end distance
     // scene.fog = new THREE.Fog(0xff0000, 10, 100);
     scene.fog = new THREE.FogExp2(0xffffff, 0.0161);
-
-    // Função para animar a cor emissiva
-    function animateEmissiveColor(object, startColor, endColor, duration) {
-      const start = { r: startColor.r, g: startColor.g, b: startColor.b };
-      const end = { r: endColor.r, g: endColor.g, b: endColor.b };
-
-      new TWEEN.Tween(start)
-        .to(end, duration)
-        .onUpdate(() => {
-          // Atualiza a cor emissiva do material
-          object.material.emissive.setRGB(start.r, start.g, start.b);
-        })
-        .start(); // Inicia a animação
-    }
 
     //functions------------------------------------------------------------------------------------------------------
     const handleInteractionStart = (e) => {
@@ -403,9 +233,6 @@ const ThreeDViewer = () => {
 
         // editingComponent.current = null;
         fabricCanvas.current.renderAll();
-        isHandleSelected = false;
-        selectedHandle = null;
-        isImageSelected = false;
       }
 
       fabricCanvas.current.renderAll();
@@ -425,8 +252,6 @@ const ThreeDViewer = () => {
       if (isDragging) {
         isDragging = false;
         orbit.enabled = true;
-        isHandleSelected = false;
-        selectedHandle = null;
         // Reset any interaction specifics here
         updateTexture(); // Refresh view to finalize interaction
       }
@@ -492,79 +317,6 @@ const ThreeDViewer = () => {
     destinationCanvas.renderAll();
   }
 
-  // //calcular area imprimida
-  const calcularEImprimirAreasOcupadas = () => {
-    let precoTotal = 13.25; // Preço base de 13.25€
-
-    fabricCanvases.forEach((canvas) => {
-      let alphaCanvas = new fabric.Canvas("temp", {
-        width: canvas.width,
-        height: canvas.height,
-        backgroundColor: "transparent",
-      });
-      copyCanvasWOBG(canvas, alphaCanvas);
-
-      let alphaData = alphaCanvas.toDataURL({ format: "png" });
-
-      let alphaImage = new Image();
-      alphaImage.src = alphaData;
-
-      let ctx = alphaCanvas.getContext("2d");
-      let imageData = ctx.getImageData(
-        0,
-        0,
-        alphaCanvas.width,
-        alphaCanvas.height
-      );
-      let data = imageData.data;
-
-      let factor = 0;
-
-      for (let i = 0; i < data.length; i += 4) {
-        if (data[i + 3] < 10) {
-          factor += 1;
-        }
-      }
-
-      const areaTotalCanvas = alphaCanvas.width * alphaCanvas.height;
-      const areaObjeto = factor / areaTotalCanvas;
-      const percentagemAreaOcupada =
-        areaObjeto / areaTotalCanvas / variavelAjuste;
-
-      const blocosDezCm2Ocupados = Math.ceil(
-        (areaTotalCanvas * percentagemAreaOcupada) / 10
-      );
-
-      const custoAdicional = blocosDezCm2Ocupados * 1.6;
-
-      precoTotal += custoAdicional;
-    });
-
-    // console.log("fabricCanvases:", fabricCanvases);
-    setPrecoFinal(precoTotal.toFixed(2)); // atualiza o estado com o preço final
-    animatePrice(0, precoTotal, 1000); // anima a mudança de preço
-  };
-
-  const animatePrice = (start, end, duration) => {
-    let startTime = null;
-    const step = (currentTime) => {
-      if (!startTime) startTime = currentTime;
-      const progress = Math.min((currentTime - startTime) / duration, 1);
-      setPrecoAnimado((progress * (end - start) + start).toFixed(2));
-      if (progress < 1) {
-        window.requestAnimationFrame(step);
-      } else {
-        setPrecoAnimado(end.toFixed(2)); // Certifica-se de que o preço final é exatamente o que deve ser
-      }
-    };
-    window.requestAnimationFrame(step);
-  };
-
-  const onConcluirClicked = () => {
-    const precoFinal = calcularEImprimirAreasOcupadas();
-    document.getElementById("precoFinal").textContent = `Preço: €${precoFinal}`;
-  };
-
   //funcoes de abrir e fechar a janela de edicao-------------------------------------------------------------------
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -609,8 +361,6 @@ const ThreeDViewer = () => {
 
   const closeTabs = () => {
     setTextEditor(false);
-    setColorEditor(false);
-    setImageEditor(false);
     setActiveObject(activeObject);
   };
 
@@ -839,9 +589,7 @@ const ThreeDViewer = () => {
       const imageSrc = activeObject.getSrc();
       setImageSrc(imageSrc); // Seta a URL da fonte da imagem no estado
       setTextEditor(false);
-      setImageEditor(true);
     } else if (activeObject && activeObject.type == "textbox") {
-      setImageEditor(false);
       setTextEditor(true);
     }
 
@@ -887,7 +635,6 @@ const ThreeDViewer = () => {
   };
 
   const backgroundMagic = useRef(null);
-  const modelosZone = useRef(null);
   const modelos = useRef(null);
   const titleModels = useRef(null);
 
@@ -910,139 +657,6 @@ const ThreeDViewer = () => {
       titleModels.current.style.transition = "all 1.2s ease-in-out";
     }
   };
-
-  const [allCanvasData, setAllCanvasData] = useState([]);
-
-  const sendData = async () => {
-    //console.log(allCanvasData);
-    const mergedData = { data: allCanvasData, clientData, docId: docId };
-
-    try {
-      const response = await fetch(
-        "https://allkits-server.onrender.com/sendEmail",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(mergedData),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to send data");
-      }
-
-      const responseData = await response.text();
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-  //console.log(fabricCanvases);
-  const testP = async () => {
-    const allCanvasData = [];
-
-    for (const canvas of fabricCanvases) {
-      const objects = canvas.getObjects();
-      const canvasData = {
-        width: canvas.width,
-        height: canvas.height,
-        backgroundColor: canvas.backgroundColor,
-        texts: [],
-        images: [],
-        part: canvas.part,
-      };
-
-      for (const obj of objects) {
-        if (obj.type === "textbox") {
-          console.log(obj);
-          //console.log(obj);
-          canvasData.texts.push({
-            text: obj.text,
-            fontFamily: obj.fontFamily,
-            fontSize: obj.fontSize,
-            color: obj.fill,
-            top: obj.top,
-            left: obj.left,
-            width: obj.width,
-            textAlign: obj.textAlign,
-          });
-        } else if (
-          obj.type === "image" &&
-          obj._element &&
-          obj._element.src.startsWith("data:image")
-        ) {
-          const baseImage = obj._element.src;
-
-          const imageData = obj._element.src.split(";base64,").pop();
-          const imageName = `image_${Date.now()}.png`;
-          const imagePath = `images/${imageName}`;
-          const imageRef = ref(storage, imagePath);
-
-          try {
-            await uploadString(imageRef, imageData, "base64");
-
-            const downloadURL = await getDownloadURL(imageRef);
-
-            canvasData.images.push({
-              url: downloadURL,
-              base64: baseImage,
-              scaleX: obj.scaleX,
-              scaleY: obj.scaleY,
-              top: obj.top,
-              left: obj.left,
-              width: obj.width,
-              height: obj.height,
-              angle: obj.angle ? obj.angle : 0,
-              flipX: obj.flipX ? obj.flipX : false,
-            });
-          } catch (error) {
-            console.error("Error uploading image:", error);
-          }
-        }
-      }
-
-      allCanvasData.push(canvasData);
-    }
-    setAllCanvasData(allCanvasData);
-    return allCanvasData;
-  };
-
-  const handleChange = (e) => {
-    setClientData({
-      ...clientData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const [windowWidth, setWindowWidth] = useState(0);
-
-  useEffect(() => {
-    // Function to update window width
-    const updateWindowWidth = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
-    // Update window width when component mounts
-    updateWindowWidth();
-
-    // event listener to update window width on resize
-    window.addEventListener("resize", updateWindowWidth);
-
-    // Clean up the event listener when component unmounts
-    return () => {
-      window.removeEventListener("resize", updateWindowWidth);
-    };
-  }, []);
-  const nextStep =
-    clientData.name != "" &&
-    clientData.email != "" &&
-    clientData.phone != "" &&
-    docId != "";
-
-  const [success, setSuccess] = useState(false);
-
-  // Style based on preview state
 
   return (
     <>
@@ -1249,8 +863,6 @@ const ThreeDViewer = () => {
       <div ref={btnConcluido} className={styles.exportBtnNot}>
         <button
           onClick={() => {
-            getActiveScene();
-            calcularEImprimirAreasOcupadas();
             setTimeout(() => {
               closeEditor();
             }, 200);
