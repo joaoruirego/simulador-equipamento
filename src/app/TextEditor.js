@@ -55,7 +55,8 @@ const TextEditor = forwardRef(
     }, [activeObject]);
 
     const handleTextChange = (e) => {
-      const newText = e.target.value;
+      const newTextLower = e.target.value;
+      const newText = newTextLower.toUpperCase();
       setText(newText);
       if (fabricCanvas.current && activeObject) {
         activeObject.set("text", newText);
