@@ -5,34 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import TWEEN from "@tweenjs/tween.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Link from "next/link";
-import {
-  getIntersections,
-  loadGLBModel,
-  selectImage,
-  copyCanvas,
-  getIntersection,
-  calculateAngle,
-  toHexString,
-  handleImage,
-} from "./utils";
+import { getIntersections, loadGLBModel } from "./utils";
 import NextImage from "next/image";
 import styles from "@/styles/page.module.css";
-import galeryIcon from "../imgs/galeryBlack.png";
 import textIcon from "@/imgs/textIcon.png";
-import colorIcon from "@/imgs/colorIcon.webp";
-import shareIcon from "@/imgs/iconShare.png";
-import buildingIcon from "@/imgs/buildingIcon.png";
-import model5 from "@/imgs/1foto.png";
-import model3 from "@/imgs/2foto.png";
-import model1 from "@/imgs/3foto.png";
-import model4 from "@/imgs/4foto.png";
-import model2 from "@/imgs/5foto.png";
-import ColorEditor from "./ColorEditor";
-import ImageEditor from "./ImageEditor";
 import TextEditor from "./TextEditor";
-import { fontList } from "./fonts";
-import { useRouter } from "next/navigation";
-import { getPartName } from "@/utils/getPartName";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { storage } from "@/firebase";
 import {
@@ -47,18 +24,6 @@ import numbericon from "../../public/numbericon.png";
 import personalizarIcon from "../../public/colorWheel.png";
 
 const ThreeDViewer = () => {
-  //qunado da select image fica tudo azul do componente preciso fazer um if ou tirar o azul por enquanto
-
-  //zonas que deixa de dar para pegar na imagem de novo tem a ver com a area de intersecao e preciso fazer alguma diretamente prop. entre a tolerancia
-
-  //meio lento a tocar em imagens ate aparecer os quadrados de scale
-
-  //qunado se mete a imagem pequena deixa de se ter acesso
-
-  //limitar scales
-  //tolerance proporcional a scale DONE
-  //raycaster layers
-  const router = useRouter();
   //three variables-----------------------------------------------------------------------------------------------
   let editingComponent = useRef(null);
   const fabricCanvasRef = useRef(null);
@@ -67,18 +32,12 @@ const ThreeDViewer = () => {
 
   const raycaster = new THREE.Raycaster();
   let initialMouse = new THREE.Vector2();
-  let currentMouse = new THREE.Vector2();
-  let initialUVCursor = new THREE.Vector2();
-  let currentUVCursor = new THREE.Vector2();
-  let initialUVRotationCursor = new THREE.Vector2();
   let orbit;
-  const [editingComponentHTML, setEditingComponentHTML] = useState("bodyBIMP");
   const [isLoading, setIsLoading] = useState(false);
   const [imageSrc, setImageSrc] = useState("");
 
   const [model, setModel] = useState("0");
   const [escolheBtn, setEscolheBtn] = useState(false);
-  const [preview, setPreview] = useState(false);
   const [tutorial, setTutorial] = useState(false);
 
   const [canvasSize, setCanvasSize] = useState(1024); // Default to larger size
@@ -440,7 +399,6 @@ const ThreeDViewer = () => {
 
         //caso não existam interseções
       } else {
-        setEditingComponentHTML(null);
         closeTabs();
 
         // editingComponent.current = null;
@@ -461,10 +419,6 @@ const ThreeDViewer = () => {
         "touchstart",
         handleInteractionStart
       );
-
-      if (editingComponent.current)
-        setEditingComponentHTML(editingComponent.current.userData.name);
-      if (!editingComponent.current) setEditingComponentHTML("bodyBIMP");
     };
 
     const onMouseUp = (e) => {
@@ -611,12 +565,6 @@ const ThreeDViewer = () => {
     document.getElementById("precoFinal").textContent = `Preço: €${precoFinal}`;
   };
 
-  useEffect(() => {
-    const area = 300;
-    // A função que realiza o cálculo da área ocupada
-    calcularEImprimirAreasOcupadas();
-  }, [fabricCanvases, preview, activeObject]);
-
   //funcoes de abrir e fechar a janela de edicao-------------------------------------------------------------------
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -726,18 +674,22 @@ const ThreeDViewer = () => {
     }
   };
 
+  const [text1, setText1] = useState("oioi");
+  const [text2, setText2] = useState("89");
+
   const [editorText, setEditorText] = useState(1);
 
   const textEditorTab = () => {
     addOrUpdateText1();
     setTextEditor(true);
     setEditorText(1);
+    setText1(text1);
     // if (activeObject && activeObject.fontSize == 55) {
     //   addTextbox("O SEU NOME");
     // }
 
     // if (!activeObject) {
-    addTextbox("O SEU NOME");
+    addTextbox(text1);
     //
     // console.log("nome: ", activeObject.fontSize);
   };
@@ -745,6 +697,8 @@ const ThreeDViewer = () => {
   const textEditorTab2 = () => {
     addOrUpdateText2();
     setTextEditor(true);
+    setText2(text2);
+
     // setActiveObject(activeObject)
     // if (activeObject && activeObject.fontSize == 265) {
     //   addTextbox2("1");
@@ -752,7 +706,7 @@ const ThreeDViewer = () => {
     // }
 
     // if (!activeObject) {
-    addTextbox2("1");
+    addTextbox2(text2);
     // }
   };
 
@@ -760,9 +714,12 @@ const ThreeDViewer = () => {
     // This will ensure any change in textData refreshes appropriately
     if (editorText === 1 && textData.text1) {
       setActiveObject(textData.text1);
+      setText1(text1);
       fabricCanvas.current.setActiveObject(textData.text1);
     } else if (editorText === 2 && textData.text2) {
       setActiveObject(textData.text2);
+      setText2(text2);
+
       fabricCanvas.current.setActiveObject(textData.text2);
     }
     fabricCanvas.current.renderAll();
@@ -807,6 +764,7 @@ const ThreeDViewer = () => {
     } else {
       textbox1.set({ text: text1 });
     }
+    setText1(text1);
     canvas.setActiveObject(textbox1);
     canvas.renderAll();
     updateTexture();
@@ -845,6 +803,8 @@ const ThreeDViewer = () => {
     } else {
       textbox2.set({ text: text2 });
     }
+    setText2(text2);
+
     canvas.setActiveObject(textbox2);
     canvas.renderAll();
     updateTexture();
@@ -896,24 +856,6 @@ const ThreeDViewer = () => {
     }
   }, [activeObject]);
 
-  // Função para retroceder ao nome anterior
-  const retrocederZona = () => {
-    setCurrentIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : 0));
-  };
-
-  // Função para avançar ao próximo nome
-  const avancarZona = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex < objectNames.length - 1 ? prevIndex + 1 : prevIndex
-    );
-  };
-
-  // useEffect(() => {
-  //   if (editingComponent.current) {
-  //     // lógica que depende de editingComponent.current
-  //     setEditingComponentHTML(editingComponent.current.userData.name);
-  //   }
-  // }, [editingComponent.current]);
   const simulateCenterClick = () => {
     if (!containerRef.current || !sceneRef.current) return;
 
@@ -939,7 +881,6 @@ const ThreeDViewer = () => {
     editingComponent.current.material.needsUpdate = true;
 
     // Simulate opening the editor for this component
-    setEditingComponentHTML(editingComponent.current.userData.name);
     openTabs();
 
     console.log("Simulated click on bodyBIMP and set the fabric texture.");
@@ -1102,17 +1043,6 @@ const ThreeDViewer = () => {
   const [success, setSuccess] = useState(false);
 
   // Style based on preview state
-  const buttonStyle = {
-    right: preview
-      ? windowWidth < 750
-        ? 110
-        : 165
-      : windowWidth < 750
-      ? 25
-      : 50,
-    color: preview ? "#fff" : "#fff",
-    backgroundColor: preview ? "transparent" : "#fff",
-  };
 
   return (
     <>
@@ -1315,49 +1245,19 @@ const ThreeDViewer = () => {
           </div>
         </div>
       </div>
-      {!preview && (
-        <div className={styles.editZoneTlm}>
-          <div className={styles.mainBtns}>
-            <button onClick={textEditorTab}>
-              <NextImage src={textIcon} width={20} height={20} />
-            </button>
-          </div>
-        </div>
-      )}
 
       <div ref={btnConcluido} className={styles.exportBtnNot}>
         <button
           onClick={() => {
             getActiveScene();
             calcularEImprimirAreasOcupadas();
-            setPreview(!preview);
             setTimeout(() => {
               closeEditor();
             }, 200);
             closeTabs();
           }}
-          style={buttonStyle}
         >
-          {preview ? (
-            windowWidth < 450 ? (
-              <p
-                style={{
-                  marginTop: 0,
-                  // backgroundColor: "rgba(0, 0, 0 ,0.3)",
-                  // padding: 10,
-                  // borderRadius: 100,
-                  // paddingLeft: 15,
-                  // paddingRight: 15,
-                }}
-              >
-                &#8592;
-              </p>
-            ) : (
-              "Voltar à Personalização"
-            )
-          ) : (
-            "Concluído"
-          )}
+          Concluído
         </button>
       </div>
 
