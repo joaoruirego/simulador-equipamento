@@ -6,7 +6,6 @@ import NextImage from "next/image";
 import styles from "../styles/page.module.css";
 import logo from "../../public/logoSanta.png";
 import logoStep from "../../public/logoStepTransparent.png";
-import ImageEditor from "./ImageEditor";
 
 const Home = () => {
   const [product, setProduct] = useState(null);

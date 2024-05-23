@@ -94,7 +94,9 @@ const ThreeDViewer = () => {
     texture.channel = 0;
     texture.colorSpace = THREE.SRGBColorSpace;
     setFabricTexture(texture);
-    openTabs();
+    setTimeout(() => {
+      openTabs();
+    }, 4000);
 
     return () => fabricCanvas.current.dispose();
   }, [canvasSize]);
@@ -205,8 +207,6 @@ const ThreeDViewer = () => {
         intersections.length > 0 &&
         intersections[0].object.name.includes("IMP")
       ) {
-        openTabs();
-
         //  EMISSIVE EFFECT
         const object = intersections[0].object;
         intersections[0].object.material.emissive.setHex;
@@ -324,6 +324,7 @@ const ThreeDViewer = () => {
   const btnConcluido = useRef(null);
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
+    setOptions(false);
   };
 
   const openTabs = () => {
@@ -385,6 +386,7 @@ const ThreeDViewer = () => {
   const chooseOptions = () => {
     setOptions(!options);
     simulateCenterClick();
+    setIsDropdownOpen(false);
 
     // Rotacionar a cena inteira quando a aba do editor de texto é acionada
     if (sceneRef.current && !tocou) {
@@ -424,8 +426,8 @@ const ThreeDViewer = () => {
     }
   };
 
-  const [text1, setText1] = useState("oioi");
-  const [text2, setText2] = useState("89");
+  const [text1, setText1] = useState("P. HENRIQUE");
+  const [text2, setText2] = useState("16");
 
   const [editorText, setEditorText] = useState(1);
 
@@ -627,7 +629,6 @@ const ThreeDViewer = () => {
     editingComponent.current.material.needsUpdate = true;
 
     // Simulate opening the editor for this component
-    openTabs();
 
     console.log("Simulated click on bodyBIMP and set the fabric texture.");
   };
@@ -860,12 +861,12 @@ const ThreeDViewer = () => {
 
       <div ref={btnConcluido} className={styles.exportBtnNot}>
         <button
-          onClick={() => {
-            setTimeout(() => {
-              closeEditor();
-            }, 200);
-            closeTabs();
-          }}
+        // onClick={() => {
+        //   setTimeout(() => {
+        //     closeEditor();
+        //   }, 200);
+        //   closeTabs();
+        // }}
         >
           Concluído
         </button>
