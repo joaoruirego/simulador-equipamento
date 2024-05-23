@@ -433,7 +433,6 @@ const ThreeDViewer = () => {
     addOrUpdateText1();
     setTextEditor(true);
     setEditorText(1);
-    setText1(text1);
     // if (activeObject && activeObject.fontSize == 55) {
     //   addTextbox("O SEU NOME");
     // }
@@ -447,7 +446,6 @@ const ThreeDViewer = () => {
   const textEditorTab2 = () => {
     addOrUpdateText2();
     setTextEditor(true);
-    setText2(text2);
 
     // setActiveObject(activeObject)
     // if (activeObject && activeObject.fontSize == 265) {
@@ -895,6 +893,10 @@ const ThreeDViewer = () => {
           setTextData={setTextData}
           editorText={editorText}
           setEditorText={setEditorText}
+          text1={text1}
+          text2={text2}
+          setText1={setText1}
+          setText2={setText2}
         />
       )}
     </>
