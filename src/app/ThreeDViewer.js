@@ -44,6 +44,7 @@ import camisaIcon from "../../public/camisaIcon.png";
 import badgeIcon from "../../public/badgeIcon.png";
 import sizeIcon from "../../public/sizeIcon.png";
 import numbericon from "../../public/numbericon.png";
+import personalizarIcon from "../../public/colorWheel.png";
 
 const ThreeDViewer = () => {
   //qunado da select image fica tudo azul do componente preciso fazer um if ou tirar o azul por enquanto
@@ -419,19 +420,6 @@ const ThreeDViewer = () => {
         intersections[0].object.material.emissive.setHex;
         const currentEmissive = object.material.emissive.getHex();
 
-        animateEmissiveColor(
-          object,
-          new THREE.Color(currentEmissive),
-          new THREE.Color(0x00bfff),
-          400
-        );
-        animateEmissiveColor(
-          object,
-          new THREE.Color(0x00bfff),
-
-          new THREE.Color(currentEmissive),
-          400
-        );
         // closeTabs();
 
         // fabricCanvas.current.renderAll();
@@ -673,6 +661,12 @@ const ThreeDViewer = () => {
     }
   };
 
+  const [options, setOptions] = useState(false);
+
+  const chooseOptions = () => {
+    setOptions(!options);
+  };
+
   const textEditorTab = () => {
     // Simule o clique central
     simulateCenterClick();
@@ -725,9 +719,9 @@ const ThreeDViewer = () => {
       originX: "center",
       originY: "center",
       width: 700,
-      fontSize: 62,
+      fontSize: 40,
       fontFamily: fontFamily,
-      fill: "#fff",
+      fill: "#eee",
       textAlign: textAlign,
       editable: false,
       borderColor: "transparent",
@@ -744,7 +738,7 @@ const ThreeDViewer = () => {
       const textbox1 = new fabric.Textbox(text1, {
         ...textOptions,
         left: canvas.width * position.averageU,
-        top: canvas.height * (position.averageV - 0.1) + -160,
+        top: canvas.height * (position.averageV - 0.1) + -150,
       });
       // // Create the second textbox
       // const textbox2 = new fabric.Textbox(text2, {
@@ -796,9 +790,9 @@ const ThreeDViewer = () => {
       originX: "center",
       originY: "center",
       width: 1000,
-      fontSize: 200,
+      fontSize: 250,
       fontFamily: fontFamily,
-      fill: "#fff",
+      fill: "#eee",
       textAlign: textAlign,
       editable: false,
       borderColor: "transparent",
@@ -815,7 +809,7 @@ const ThreeDViewer = () => {
       const textbox2 = new fabric.Textbox(text2, {
         ...textOptions,
         left: canvas.width * position.averageU,
-        top: canvas.height * (position.averageV - 0.1) + 0,
+        top: canvas.height * (position.averageV - 0.1) + 25,
       });
       // // Create the second textbox
       // const textbox2 = new fabric.Textbox(text2, {
@@ -1229,29 +1223,85 @@ const ThreeDViewer = () => {
               </div>
             </button>
             <button
-              onClick={textEditorTab}
+              onClick={chooseOptions}
               className={styles.divAreaEspecifica}
             >
               <div className={styles.divIcon}>
-                <NextImage src={textIcon} width={20} height={20} alt="step" />
+                <NextImage
+                  src={personalizarIcon}
+                  width={20}
+                  height={20}
+                  alt="step"
+                />
               </div>
               <div>
-                <p className={styles.titleText}>Escolher Nome</p>
-                <p className={styles.infoText}>Escolhe o teu nome.</p>
+                <p className={styles.titleText}>Personalizar</p>
+                <p className={styles.infoText}>Escolha o seu nome e número.</p>
               </div>
             </button>
-            <button
-              onClick={textEditorTab2}
-              className={styles.divAreaEspecifica}
-            >
-              <div className={styles.divIcon}>
-                <NextImage src={numbericon} width={20} height={20} alt="step" />
-              </div>
-              <div>
-                <p className={styles.titleText}>Escolher Número</p>
-                <p className={styles.infoText}>Escolhe o teu número.</p>
-              </div>
-            </button>
+            {options && (
+              <>
+                <button
+                  style={{
+                    cursor: "not-allowed",
+                    opacity: 0.5,
+                    marginLeft: 10,
+                  }}
+                  className={styles.divAreaEspecifica}
+                >
+                  <div className={styles.divIcon}>
+                    <NextImage
+                      src={textIcon}
+                      width={20}
+                      height={20}
+                      alt="step"
+                    />
+                  </div>
+                  <div>
+                    <p className={styles.titleText}>Escolher Jogador</p>
+                    <p className={styles.infoText}>
+                      Escolhe a camisa de um jogador.
+                    </p>
+                  </div>
+                </button>
+                <button
+                  style={{ marginLeft: 10 }}
+                  onClick={textEditorTab}
+                  className={styles.divAreaEspecifica}
+                >
+                  <div className={styles.divIcon}>
+                    <NextImage
+                      src={textIcon}
+                      width={20}
+                      height={20}
+                      alt="step"
+                    />
+                  </div>
+                  <div>
+                    <p className={styles.titleText}>Escolher Nome</p>
+                    <p className={styles.infoText}>Escolhe o teu nome.</p>
+                  </div>
+                </button>
+                <button
+                  style={{ marginLeft: 10 }}
+                  onClick={textEditorTab2}
+                  className={styles.divAreaEspecifica}
+                >
+                  <div className={styles.divIcon}>
+                    <NextImage
+                      src={numbericon}
+                      width={20}
+                      height={20}
+                      alt="step"
+                    />
+                  </div>
+                  <div>
+                    <p className={styles.titleText}>Escolher Número</p>
+                    <p className={styles.infoText}>Escolhe o teu número.</p>
+                  </div>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
