@@ -97,11 +97,16 @@ const TextEditor = forwardRef(
                 className={styles.input_Trash}
               >
                 <input
-                  placeholder="Escreva o seu texto"
+                  placeholder={
+                    editorText == 1
+                      ? "Escreva o seu nome"
+                      : "Digite o seu número"
+                  }
                   className={styles.inputText}
                   value={text}
                   onChange={handleTextChange}
                   style={{ width: "90%" }}
+                  maxLength={editorText == 1 ? 16 : 2}
                 />
                 <button onClick={handleDelete} className={styles.deleteButton}>
                   <NextImage src={deleteIcon} width={25} height={25} />
